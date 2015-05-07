@@ -3,14 +3,14 @@
 
 _realname='conemu'
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
-pkgver=r3199.5dc44c0
+pkgver=r3194.78fc212
 pkgrel=1
 pkgdesc="Customizable Windows console emulator with tabs (mingw-w64)"
 url="http://code.google.com/p/${_realname}-maximus5/"
 license=('BSD New')
 arch=('any')
-conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
              "git")
 # CAUTION:
@@ -35,32 +35,61 @@ build() {
   # Don't remove `-static*' switches from `USERLIBSFIRST'!  Otherwise, when
   # running `cmd.exe' (Command Prompt) in ConEmu, it cannot find
   # `libstdc++-6.dll' if it is not in the current `PATH' environment variable.
-  make                                                                         \
-    -j1                                                                        \
-    -f makefile_all_gcc                                                        \
-             WIDE="1"                                                          \
-          USERCPP="-pipe -O3 -fomit-frame-pointer -fpermissive -std=c++11"     \
+  # CAUTION:
+  # Don't remove `-j1' switch!  Otherwise, you might get unexpected problems
+  # with build.
+  make \
+    -j1 \
+    -f makefile_all_gcc \
+             WIDE="1" \
+          USERCPP="-std=c++11 -pipe -O3 -fomit-frame-pointer -funroll-loops -fpermissive" \
     USERLIBSFIRST="-static -static-libgcc -static-libstdc++"
 }
 
-package() {
-  local suffix=''
+package_mingw-w64-i686-conemu-git() {
+  optdepends=('mingw-w64-x86_64-conemu-git')
 
-  if test "${CARCH}" == 'x86_64'; then
-    suffix='64'
-  fi
+  mkdir -p "${pkgdir}${MINGW_PREFIX}/bin/ConEmu"
 
-  mkdir -p "${pkgdir}${MINGW_PREFIX}/bin"
-
-  cp -r "ConEmu.xml" "${pkgdir}${MINGW_PREFIX}/bin"
+  cp "ConEmu.xml" "${pkgdir}${MINGW_PREFIX}/bin/ConEmu"
 
   cd "${_realname}/Release"
 
-  cp -r "ConEmu.exe" "${pkgdir}${MINGW_PREFIX}/bin/"
+  cp "ConEmu.exe" "${pkgdir}${MINGW_PREFIX}/bin"
 
   cd "ConEmu"
 
-  cp -r "ConEmuC.exe"  "${pkgdir}${MINGW_PREFIX}/bin/ConEmuC${suffix}.exe"
-  cp -r "ConEmuCD.dll" "${pkgdir}${MINGW_PREFIX}/bin/ConEmuCD${suffix}.dll"
-  cp -r "ConEmuHk.dll" "${pkgdir}${MINGW_PREFIX}/bin/ConEmuHk${suffix}.dll"
+  cp "ConEmuC.exe"  "${pkgdir}${MINGW_PREFIX}/bin/ConEmu/ConEmuC.exe"
+  cp "ConEmuCD.dll" "${pkgdir}${MINGW_PREFIX}/bin/ConEmu/ConEmuCD.dll"
+  cp "ConEmuHk.dll" "${pkgdir}${MINGW_PREFIX}/bin/ConEmu/ConEmuHk.dll"
+
+  mkdir -p "${pkgdir}${MINGW_PREFIX}/../mingw64/bin/ConEmu"
+
+  cp "ConEmuC.exe"  "${pkgdir}${MINGW_PREFIX}/../mingw64/bin/ConEmu/ConEmuC.exe"
+  cp "ConEmuCD.dll" "${pkgdir}${MINGW_PREFIX}/../mingw64/bin/ConEmu/ConEmuCD.dll"
+  cp "ConEmuHk.dll" "${pkgdir}${MINGW_PREFIX}/../mingw64/bin/ConEmu/ConEmuHk.dll"
+}
+
+package_mingw-w64-x86_64-conemu-git() {
+  optdepends=('mingw-w64-i686-conemu-git')
+
+  mkdir -p "${pkgdir}${MINGW_PREFIX}/bin/ConEmu"
+
+  cp "ConEmu.xml" "${pkgdir}${MINGW_PREFIX}/bin/ConEmu"
+
+  cd "${_realname}/Release"
+
+  cp "ConEmu.exe" "${pkgdir}${MINGW_PREFIX}/bin"
+
+  cd "ConEmu"
+
+  cp "ConEmuC.exe"  "${pkgdir}${MINGW_PREFIX}/bin/ConEmu/ConEmuC64.exe"
+  cp "ConEmuCD.dll" "${pkgdir}${MINGW_PREFIX}/bin/ConEmu/ConEmuCD64.dll"
+  cp "ConEmuHk.dll" "${pkgdir}${MINGW_PREFIX}/bin/ConEmu/ConEmuHk64.dll"
+
+  mkdir -p "${pkgdir}${MINGW_PREFIX}/../mingw32/bin/ConEmu"
+
+  cp "ConEmuC.exe"  "${pkgdir}${MINGW_PREFIX}/../mingw32/bin/ConEmu/ConEmuC64.exe"
+  cp "ConEmuCD.dll" "${pkgdir}${MINGW_PREFIX}/../mingw32/bin/ConEmu/ConEmuCD64.dll"
+  cp "ConEmuHk.dll" "${pkgdir}${MINGW_PREFIX}/../mingw32/bin/ConEmu/ConEmuHk64.dll"
 }
